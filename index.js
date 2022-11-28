@@ -49,7 +49,12 @@ async function run() {
             res.send(result);
         })
 
-
+        app.post('/buyers', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const result = await buyersCollection.insertOne(user);
+            res.send(result);
+        });
     }
     finally { }
 }
