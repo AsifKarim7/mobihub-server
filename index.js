@@ -34,7 +34,7 @@ async function run() {
             const cursor = phoneCollection.find(query);
             const category = await cursor.toArray();
             res.send(category);
-        });
+        })
 
         app.get('/orders', async (req, res) => {
             const email = req.query.email;
@@ -54,7 +54,13 @@ async function run() {
             console.log(user);
             const result = await buyersCollection.insertOne(user);
             res.send(result);
-        });
+        })
+
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await phoneCollection.insertOne(product);
+            res.send(result);
+        })
     }
     finally { }
 }
