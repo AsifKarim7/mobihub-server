@@ -61,8 +61,30 @@ async function run() {
             const result = await phoneCollection.insertOne(product);
             res.send(result);
         })
+
+        app.get('/myproducts', async (req, res) => {
+            let query = {};
+            if (req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            const cursor = phoneCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.delete('/myproducts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await phoneCollection.deleteOne(query);
+            res.send(result);
+        })
+
     }
-    finally { }
+    finally {
+
+    }
 }
 run().catch(error => console.error(error));
 
