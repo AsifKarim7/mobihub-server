@@ -17,6 +17,8 @@ async function run() {
     try {
         const phoneCollection = client.db('mobiHub').collection('mobileBrands');
         const categoryCollection = client.db('mobiHub').collection('brands');
+        const ordersCollection = client.db('mobiHub').collection('orders');
+
 
         app.get('/category', async (req, res) => {
             const query = {}
@@ -33,6 +35,11 @@ async function run() {
             res.send(category);
         });
 
+        app.post('/orders', async (req, res) => {
+            const booking = req.body;
+            const result = await ordersCollection.insertOne(booking);
+            res.send(result);
+        })
     }
     finally { }
 }
