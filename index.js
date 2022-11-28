@@ -18,6 +18,7 @@ async function run() {
         const phoneCollection = client.db('mobiHub').collection('mobileBrands');
         const categoryCollection = client.db('mobiHub').collection('brands');
         const ordersCollection = client.db('mobiHub').collection('orders');
+        const buyersCollection = client.db('mobiHub').collection('buyers');
 
 
         app.get('/category', async (req, res) => {
@@ -35,11 +36,20 @@ async function run() {
             res.send(category);
         });
 
+        app.get('/orders', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const orders = await ordersCollection.find(query).toArray();
+            res.send(orders);
+        })
+
         app.post('/orders', async (req, res) => {
             const booking = req.body;
             const result = await ordersCollection.insertOne(booking);
             res.send(result);
         })
+
+
     }
     finally { }
 }
