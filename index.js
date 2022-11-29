@@ -38,6 +38,7 @@ async function run() {
         const categoryCollection = client.db('mobiHub').collection('brands');
         const ordersCollection = client.db('mobiHub').collection('orders');
         const usersCollection = client.db('mobiHub').collection('users');
+        const advertisedCollection = client.db('mobiHub').collection('advertised');
 
 
         app.get('/category', async (req, res) => {
@@ -85,6 +86,13 @@ async function run() {
             const role = req.query.role;
             const query = { role };
             const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await usersCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -141,6 +149,19 @@ async function run() {
             const product = req.body;
             const result = await phoneCollection.insertOne(product);
             res.send(result);
+        })
+
+        app.post('/advertisedProduct', async (req, res) => {
+            const advertisedProduct = req.body;
+            const result = await advertisedCollection.insertOne(advertisedProduct);
+            res.send(result);
+        })
+
+        app.get('/advertisedProduct', async (req, res) => {
+            const query = {}
+            const cursor = advertisedCollection.find(query);
+            const advertised = await cursor.toArray();
+            res.send(advertised);
         })
 
         app.get('/myproducts', async (req, res) => {
