@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -18,7 +19,7 @@ async function run() {
         const phoneCollection = client.db('mobiHub').collection('mobileBrands');
         const categoryCollection = client.db('mobiHub').collection('brands');
         const ordersCollection = client.db('mobiHub').collection('orders');
-        const buyersCollection = client.db('mobiHub').collection('buyers');
+        const usersCollection = client.db('mobiHub').collection('users');
 
 
         app.get('/category', async (req, res) => {
@@ -49,10 +50,21 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/buyers', async (req, res) => {
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+                return res.send({ accessToken: token });
+            }
+            res.status(403).send({ accessToken: '' })
+        })
+
+        app.post('/users', async (req, res) => {
             const user = req.body;
             console.log(user);
-            const result = await buyersCollection.insertOne(user);
+            const result = await usersCollection.insertOne(user);
             res.send(result);
         })
 
