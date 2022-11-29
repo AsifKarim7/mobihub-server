@@ -14,6 +14,24 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.rcmuwti.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send('unauthorized access');
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run() {
     try {
         const phoneCollection = client.db('mobiHub').collection('mobileBrands');
@@ -40,7 +58,8 @@ async function run() {
         app.get('/orders', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
-            const orders = await ordersCollection.find(query).toArray();
+            const cursor = ordersCollection.find(query);
+            const orders = await cursor.toArray();
             res.send(orders);
         })
 
@@ -59,6 +78,14 @@ async function run() {
                 return res.send({ accessToken: token });
             }
             res.status(403).send({ accessToken: '' })
+        })
+
+
+        app.get('/users', async (req, res) => {
+            // const role = req.query.role;
+            const query = {};
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
         })
 
         app.post('/users', async (req, res) => {
