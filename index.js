@@ -95,6 +95,25 @@ async function run() {
             res.send(result);
         })
 
+        app.put('/users/admin/:id', async (req, res) => {
+
+            const query = { email: req.query.email };
+            const user = await usersCollection.findOne(query);
+            if (user?.role === 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) }
+            const options = { upset: true };
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        })
+
         app.post('/product', async (req, res) => {
             const product = req.body;
             const result = await phoneCollection.insertOne(product);
