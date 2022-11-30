@@ -224,7 +224,6 @@ async function run() {
             const result = await phoneCollection.deleteOne(query);
             res.send(result);
         })
-
     }
     finally {
 
