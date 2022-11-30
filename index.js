@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = process.env.Port || 5000;
@@ -40,6 +41,8 @@ async function run() {
         const usersCollection = client.db('mobiHub').collection('users');
         const advertisedCollection = client.db('mobiHub').collection('advertised');
 
+        const paymentCollection = client.db('mobiHub').collection('payments');
+
 
         app.get('/category', async (req, res) => {
             const query = {}
@@ -62,6 +65,45 @@ async function run() {
             const cursor = ordersCollection.find(query);
             const orders = await cursor.toArray();
             res.send(orders);
+        })
+
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const order = await ordersCollection.findOne(query);
+            res.send(order);
+        })
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const order = req.body;
+            const price = parseInt(order.price);
+            const amount = parseInt(price * 100);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'usd',
+                amount: amount,
+                "payment_method_types": [
+                    "card"
+                ]
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment);
+            const id = payment.orderId
+            const filter = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedResult = await ordersCollection.updateOne(filter, updatedDoc)
+            res.send(result);
         })
 
         app.post('/orders', async (req, res) => {
